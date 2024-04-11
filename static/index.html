@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8" />
+   </head>
+   <body>
+      <input type="button" id="clear" value="Clear Logs"/>
+      Random Delay(sec): <input type="text" id="delay" value="3"/>
+      <input type="checkbox" id="rnd">Send Random
+      <br/>
+      <br/>
+      <div id="content"></div>
+      <script>
+         (function() {
+            let poll;
+            let socket
+            let sendRnd=false;
+            initSocket();
+            document.getElementById('rnd').onchange=(e)=>{
+               sendRnd=e.target.checked;
+               if(sendRnd==true){
+                  sendRandom()
+               }
+               else{
+                  if(poll){
+                     clearInterval(poll);
+                  }    
+               }
+            }
+            document.getElementById('clear').onclick=function(){
+               document.getElementById('content').innerHTML =''
+            }
+            function logOpen(source){
+            document.getElementById('content').innerHTML += source +': Connections to the server established..<br/>';
+         }
+            function logEvent(e){
+               document.getElementById('content').innerHTML += e.data + '<br/>';
+            }
+            function initSocket(){
+               var secured='s'
+               if(window.location.protocol=='http:')
+                  secured=''
+               socket = new WebSocket(`ws${secured}://${window.location.host}/`);
+               socket.onmessage = function(e) {
+                  logEvent(e)
+               };
+               socket.onopen = function(e) {
+                  logOpen("Socket initiated")
+               };
+            }
+            function sendRandom(){
+            if (sendRnd==true){
+               if(socket){
+                  poll=setInterval(()=>{
+                     socket.send(generateRandom(1,1));
+                  },parseInt(document.getElementById('delay').value)*1000)
+               }
+            }
+         }
+            function generateRandom(numParagraphs, numSentencesPerParagraph) {
+               const words = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna', 'aliqua'];
+               const paragraphs = [];
+               for (let p = 0; p < numParagraphs; p++) {
+                  const sentences = [];
+                  for (let i = 0; i < numSentencesPerParagraph; i++) {
+                     const numWords = Math.floor(Math.random() * 10) + 5;
+                     const sentenceWords = [];
+                     for (let j = 0; j < numWords; j++) {
+                     const randomIndex = Math.floor(Math.random() * words.length);
+                     sentenceWords.push(words[randomIndex]);
+                     }
+                     const sentence = sentenceWords.join(' ') + '.';
+                     sentences.push(sentence.charAt(0).toUpperCase() + sentence.slice(1));
+                  }
+                  paragraphs.push(sentences.join(' '));
+               }
+               return paragraphs.join('\n\n');
+            }
+         })();
+        
+      </script>
+   </body>
+</html>
