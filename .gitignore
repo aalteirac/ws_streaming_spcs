@@ -13,3 +13,4 @@ api/static/*
 **/dist
 
 deploy.txt
+mysecrets.py
