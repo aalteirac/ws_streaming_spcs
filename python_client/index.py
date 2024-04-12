@@ -1,7 +1,6 @@
 
 from mysecrets import usr,passw,account
 from snowflake.snowpark.session import Session
-import pandas as pd
 import time
 from socket import socket
 import websocket
@@ -19,21 +18,21 @@ snowflake_connection_info = {
 }
 
 session = Session.builder.configs(snowflake_connection_info).create()
-print('conn ok')
+print('Connected to Snowflake...')
 
 session.sql(f'''USE WAREHOUSE WS_STREAMING_WH''').collect()
 session.sql(f'''USE ROLE {SPCS_ROLE}''').collect()
 edpts = session.sql(f'''show endpoints in service {SPCS_DB}.{SPCS_SC}.{SPCS_SERV} ''')
-print('endpoints found')
+print('Endpoints found...')
 
 df = edpts.filter(f''' "name" = '{ENDPOINT_NAME}' ''').to_pandas()
 url = df['ingress_url'].iloc[0]
-print(f'found: {url}')
+print(f'Found Ingress: {url}...')
 
 session.sql(f"alter session set python_connector_query_result_format = json;").collect()
 tkdata = session.connection._rest._token_request('ISSUE')
 token = tkdata['data']['sessionToken']
-print('token found')
+print('Token grabbed...')
 
 header = {'Authorization': f'''Snowflake Token="{token}"'''}
 sock=f'wss://{url}/'
@@ -42,7 +41,9 @@ def on_error(ws, error):
     print(error)
 
 def on_open(ws):
-    print ('Websocket connected to the server: '+sock)
+    print (f'Websocket connected to the server: {sock}')
+    print ('Sending MSG every second...')
+    print (f'Check https://{url}')
     loopSend()
 
 def loopSend():
